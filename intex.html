@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Master Pro - Amount Collection Feature</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root { --primary: #667eea; --success: #28a745; --danger: #dc3545; --warning: #ff9800; --info: #17a2b8; --purple: #764ba2; --vip-gold: #ffd700; --collection: #20c997; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea, #764ba2); min-height: 100vh; color: #333; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 10px 25px; color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .btn { padding: 8px 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; font-size: 13px; }
+        .tab-nav { display: flex; justify-content: center; gap: 10px; padding: 20px 0 0 0; flex-wrap: wrap; }
+        .tab-btn { padding: 10px 20px; border: none; border-radius: 8px; background: rgba(255, 255, 255, 0.2); color: white; font-weight: bold; cursor: pointer; transition: 0.3s; margin-bottom: 5px; }
+        .tab-btn.active { background: white; color: var(--purple); }
+        .container { max-width: 450px; margin: 20px auto 40px auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); display: none; }
+        .container.active { display: block; }
+        .admin-wide { max-width: 1250px; }
+        .input-group { margin-bottom: 12px; }
+        label { font-weight: 600; font-size: 14px; display: block; margin-bottom: 5px; }
+        input, textarea { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
+        .submit-btn { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 6px; background: var(--primary); color: white; font-size: 16px; cursor: pointer; }
+        
+        /* Dashboard Layout */
+        .admin-grid { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 20px; margin-bottom: 20px; }
+        .dashboard-box { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        
+        /* Tables */
+        .db-columns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .db-col { background: #fff; border: 2px solid #ddd; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; height: 550px; }
+        .db-col-header { padding: 12px; color: white; font-weight: bold; text-align: center; text-transform: uppercase; }
+        .col-registry { background: var(--purple); }
+        .col-record { background: var(--primary); }
+        .col-due { background: var(--warning); }
+        .col-collection { background: var(--collection); }
+        .col-content { flex-grow: 1; overflow-y: auto; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border-bottom: 1px solid #eee; padding: 10px; text-align: left; }
+        
+        /* Download Button */
+        .export-area { padding: 15px; background: #fff; border-top: 1px solid #eee; text-align: center; }
+        .export-btn-rect { width: 90%; padding: 10px; border: 2px solid #ddd; background: white; color: var(--danger); font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; font-size: 12px; }
+
+        .vip-badge { background: var(--vip-gold); color: #000; padding: 2px 4px; border-radius: 4px; font-weight: bold; font-size: 9px; margin-left: 5px; }
+        .user-mgmt-table { width: 100%; font-size: 11px; border-collapse: collapse; margin-top: 5px; }
+        .del-btn { color: var(--danger); cursor: pointer; border: none; background: none; font-weight: bold; }
+        
+        #profileInfo { font-size: 12px; color: white; margin-right: 15px; background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 20px; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div style="font-weight: bold; font-size: 20px;">CRM MASTER</div>
+    <div style="display: flex; align-items: center;">
+        <span id="profileInfo" style="display: none;"></span>
+        <button class="btn" style="background: var(--info)" id="loginNavBtn">Login</button>
+        <button class="btn" style="background: var(--danger); display:none;" id="logoutBtn" onclick="location.reload()">Logout</button>
+    </div>
+</nav>
+
+<div id="tabNav" class="tab-nav" style="display: none;">
+    <button class="tab-btn active" onclick="switchTab(event, 'RECORD')">RECORD</button>
+    <button class="tab-btn" onclick="switchTab(event, 'REGISTRY')">REGISTRY</button>
+    <button class="tab-btn" onclick="switchTab(event, 'DUE')">DUE ENTRY</button>
+    <!-- New Tab Added -->
+    <button class="tab-btn" style="background: var(--collection);" onclick="switchTab(event, 'COLLECTION')">AMOUNT COLLECTION</button>
+    <button class="tab-btn" id="adminTab" style="display:none;" onclick="switchTab(event, 'ADMIN')">ADMIN DASHBOARD</button>
+    <button class="tab-btn" style="background: var(--info);" onclick="switchTab(event, 'PROFILE')">⚙️ MY SETTINGS</button>
+</div>
+
+<!-- Forms Sections -->
+<div class="container active" id="loginSection">
+    <h2>Admin Login</h2>
+    <div class="input-group"><label>User ID</label><input type="text" id="loginId"></div>
+    <div class="input-group"><label>Password</label><input type="password" id="loginPass"></div>
+    <button class="submit-btn" onclick="handleLogin()">Access Dashboard</button>
+</div>
+
+<!-- New Amount Collection Form -->
+<div id="section-COLLECTION" class="container">
+    <h2>AMMOUNT COLLECTION</h2>
+    <form onsubmit="handleFormSubmit(event, 'COLLECTION')">
+        <div class="input-group"><label>Date</label><input type="date" name="date" required id="collDate"></div>
+        <div class="input-group"><label>Amount</label><input type="number" name="amount" placeholder="Enter amount" required></div>
+        <div class="input-group"><label>Purpose (Parpas)</label><textarea name="purpose" placeholder="Enter purpose" required></textarea></div>
+        <button type="submit" class="submit-btn" style="background: var(--collection);">Submit Collection</button>
+    </form>
+</div>
+
+<div id="section-PROFILE" class="container">
+    <h2>Update Password</h2>
+    <div class="input-group">
+        <label>New Password</label>
+        <input type="password" id="newPassInput" placeholder="Enter new password">
+    </div>
+    <button class="submit-btn" style="background: var(--success);" onclick="updateOwnPassword()">Update Password</button>
+</div>
+
+<div id="section-RECORD" class="container">
+    <h2>RECORD ENTRY</h2>
+    <form onsubmit="handleFormSubmit(event, 'RECORD')">
+        <div class="input-group"><label>Name</label><input type="text" name="name" required></div>
+        <div class="input-group"><label>Mobile</label><input type="tel" name="mobile" required></div>
+        <div class="input-group"><label>Address</label><textarea name="address"></textarea></div>
+        <button type="submit" class="submit-btn">Submit Record</button>
+    </form>
+</div>
+
+<div id="section-REGISTRY" class="container">
+    <h2>REGISTRY ENTRY</h2>
+    <form onsubmit="handleFormSubmit(event, 'REGISTRY')">
+        <div class="input-group"><label>Name</label><input type="text" name="name" required></div>
+        <div class="input-group"><label>Mobile</label><input type="tel" name="mobile" required></div>
+        <div class="input-group"><label>Info</label><textarea name="address" required></textarea></div>
+        <button type="submit" class="submit-btn">Submit Registry</button>
+    </form>
+</div>
+
+<div id="section-DUE" class="container">
+    <h2>DUE ENTRY</h2>
+    <form onsubmit="handleFormSubmit(event, 'DUE')">
+        <div class="input-group"><label>Name</label><input type="text" name="name" required></div>
+        <div class="input-group"><label>Mobile</label><input type="tel" name="mobile" required></div>
+        <div class="input-group"><label>Due Amount</label><input type="number" name="due" required></div>
+        <button type="submit" class="submit-btn">Submit Due</button>
+    </form>
+</div>
+
+<div id="section-ADMIN" class="container admin-wide">
+    <div class="admin-grid">
+        <div class="dashboard-box" style="border: 2px solid #ddd;">
+            <h3 style="margin: 0;">👤 User Mgmt</h3>
+            <div style="background: #f4f4f4; padding: 10px; border-radius: 5px; margin-top:10px;">
+                <input type="text" id="newUserId" placeholder="User ID" style="margin-bottom: 5px; height: 30px; font-size: 11px;">
+                <input type="password" id="newUserPass" placeholder="Pass" style="margin-bottom: 5px; height: 30px; font-size: 11px;">
+                <button class="btn" style="background:var(--success); width: 100%;" onclick="addUser()">Add User</button>
+            </div>
+            <div style="max-height: 100px; overflow-y: auto;">
+                <table class="user-mgmt-table">
+                    <thead><tr><th>ID</th><th>Pass</th><th>Action</th></tr></thead>
+                    <tbody id="userManagementBody"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="dashboard-box">
+            <h3 style="margin:0;">📊 Quick Status</h3>
+            <input type="date" id="filterDate" onchange="refreshAdmin()" style="margin: 10px 0;">
+            <div style="font-size:12px;">Reg: <b id="statRegistry">0</b> | Rec: <b id="statRecord">0</b> | Due: <b id="statDue">0</b> | Coll: <b id="statColl">0</b></div>
+        </div>
+
+        <div class="dashboard-box" style="border-left: 5px solid var(--vip-gold);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0;">🌟 VIP Tracker</h3>
+                <button class="btn" style="background: var(--success); font-size: 10px; padding: 4px 8px;" onclick="exportVIPTrackerExcel()">Excel</button>
+            </div>
+            <div style="max-height: 120px; overflow-y: auto; margin-top:10px;">
+                <table class="user-mgmt-table" id="vipTable">
+                    <thead><tr><th>Name</th><th>Mobile</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="db-columns">
+        <div class="db-col" style="border-color: var(--purple);">
+            <div class="db-col-header col-registry">REGISTRY</div>
+            <div class="col-content"><table id="tableRegistry"><thead><tr><th>Name</th><th>Info</th><th>Action</th></tr></thead><tbody></tbody></table></div>
+            <div class="export-area"><button class="export-btn-rect" onclick="exportToExcel('REGISTRY')">Download in Excel</button></div>
+        </div>
+        <div class="db-col" style="border-color: var(--primary);">
+            <div class="db-col-header col-record">RECORD</div>
+            <div class="col-content"><table id="tableRecord"><thead><tr><th>Name</th><th>Mobile</th><th>Action</th></tr></thead><tbody></tbody></table></div>
+            <div class="export-area"><button class="export-btn-rect" onclick="exportToExcel('RECORD')">Download in Excel</button></div>
+        </div>
+        <div class="db-col" style="border-color: var(--warning);">
+            <div class="db-col-header col-due">DUE</div>
+            <div class="col-content"><table id="tableDue"><thead><tr><th>Name</th><th>Amt</th><th>Action</th></tr></thead><tbody></tbody></table></div>
+            <div class="export-area"><button class="export-btn-rect" onclick="exportToExcel('DUE')">Download in Excel</button></div>
+        </div>
+        <!-- New Admin Table for Collection -->
+        <div class="db-col" style="border-color: var(--collection);">
+            <div class="db-col-header col-collection">COLLECTION</div>
+            <div class="col-content"><table id="tableCollection"><thead><tr><th>Purpose</th><th>Amt</th><th>Action</th></tr></thead><tbody></tbody></table></div>
+            <div class="export-area"><button class="export-btn-rect" onclick="exportToExcel('COLLECTION')">Download in Excel</button></div>
+        </div>
+    </div>
+</div>
+
+# Complete Firebase Connected CRM HTML
+
+আপনার HTML file এর নিচের পুরনো `<script>...</script>` অংশ পুরো delete করে নিচের complete updated Firebase connected script বসান।
+
+```html
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+addDoc,
+getDocs,
+deleteDoc,
+doc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAar-fcPPh04D48ND-9I3ibESe1sWxjIeo",
+  authDomain: "onlinestudio-d178c.firebaseapp.com",
+  databaseURL: "https://onlinestudio-d178c-default-rtdb.firebaseio.com",
+  projectId: "onlinestudio-d178c",
+  storageBucket: "onlinestudio-d178c.firebasestorage.app",
+  messagingSenderId: "192952302214",
+  appId: "1:192952302214:web:6617fb95d577ac6d43af07",
+  measurementId: "G-Q4QWE9595Y"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let currentUser = null;
+
+document.getElementById('collDate').valueAsDate = new Date();
+
+function initDB() {
+
+if (!localStorage.getItem('crm_users')) {
+
+localStorage.setItem('crm_users', JSON.stringify([
+{
+id: 'admin',
+pass: '1234',
+role: 'admin'
+}
+]));
+
+}
+
+}
+
+initDB();
+
+window.handleLogin = async function() {
+
+const id = document.getElementById('loginId').value.trim();
+const pass = document.getElementById('loginPass').value.trim();
+
+const users = JSON.parse(localStorage.getItem('crm_users'));
+
+const found = users.find(u => u.id === id && u.pass === pass);
+
+if(found) {
+
+currentUser = found;
+
+ document.getElementById('loginSection').style.display = 'none';
+ document.getElementById('tabNav').style.display = 'flex';
+ document.getElementById('logoutBtn').style.display = 'block';
+ document.getElementById('profileInfo').innerText = 'User: ' + found.id;
+ document.getElementById('profileInfo').style.display = 'block';
+
+ if(found.role === 'admin') {
+    document.getElementById('adminTab').style.display = 'block';
+    renderUserList();
+ }
+
+ switchTab(null, 'RECORD');
+ refreshAdmin();
+
+} else {
+ alert('Invalid Credentials!');
+}
+
+}
+
+window.switchTab = function(e, type) {
+
+ document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+ document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+ document.getElementById('section-' + type).classList.add('active');
+
+ if(e) e.target.classList.add('active');
+}
+
+window.handleFormSubmit = async function(e, type) {
+
+ e.preventDefault();
+
+ const formData = new FormData(e.target);
+ const data = Object.fromEntries(formData.entries());
+
+ const entryDate =
+ type === 'COLLECTION'
+ ? data.date
+ : new Date().toISOString().split('T')[0];
+
+ const entry = {
+   ...data,
+   type,
+   date: entryDate,
+   timestamp: new Date().getTime()
+ };
+
+ try {
+
+   await addDoc(collection(db, type), entry);
+
+   alert('Saved Successfully!');
+
+   e.target.reset();
+
+   if(type === 'COLLECTION') {
+     document.getElementById('collDate').valueAsDate = new Date();
+   }
+
+   refreshAdmin();
+
+ } catch(err) {
+
+   console.log(err);
+   alert('Firebase Save Error');
+ }
+}
+
+window.refreshAdmin = async function() {
+
+ const allData = [];
+
+ const types = [
+ 'RECORD',
+ 'REGISTRY',
+ 'DUE',
+ 'COLLECTION'
+ ];
+
+ for(const type of types) {
+
+   const snapshot = await getDocs(collection(db, type));
+
+   snapshot.forEach(docSnap => {
+
+      allData.push({
+      id: docSnap.id,
+      ...docSnap.data()
+      });
+
+   });
+ }
+
+ const renderTable = (type) =>
+
+ allData.filter(i => i.type === type).map(item => `
+
+ <tr>
+   <td>${item.purpose || item.name}</td>
+   <td>${item.amount || item.due || item.mobile}</td>
+   <td>
+      <button class="del-btn"
+      onclick="deleteEntry('${item.id}','${type}')">
+      ×
+      </button>
+   </td>
+ </tr>
+
+ `).join('');
+
+ document.querySelector('#tableRegistry tbody').innerHTML = renderTable('REGISTRY');
+ document.querySelector('#tableRecord tbody').innerHTML = renderTable('RECORD');
+ document.querySelector('#tableDue tbody').innerHTML = renderTable('DUE');
+ document.querySelector('#tableCollection tbody').innerHTML = renderTable('COLLECTION');
+
+ document.getElementById('statRecord').innerText = allData.filter(i=>i.type==='RECORD').length;
+ document.getElementById('statRegistry').innerText = allData.filter(i=>i.type==='REGISTRY').length;
+ document.getElementById('statDue').innerText = allData.filter(i=>i.type==='DUE').length;
+ document.getElementById('statColl').innerText = allData.filter(i=>i.type==='COLLECTION').length;
+}
+
+window.deleteEntry = async function(id, type) {
+
+ if(!confirm('Delete?')) return;
+
+ try {
+
+   await deleteDoc(doc(db, type, id));
+
+   refreshAdmin();
+
+ } catch(err) {
+
+   alert('Delete Failed');
+ }
+}
+
+window.renderUserList = function() {
+
+ const users = JSON.parse(localStorage.getItem('crm_users'));
+
+ document.getElementById('userManagementBody').innerHTML = users.map((u, idx) => `
+
+ <tr>
+   <td>${u.id}</td>
+   <td>****</td>
+   <td>
+   ${u.id !== 'admin'
+   ? `<button class="del-btn" onclick="removeUser(${idx})">×</button>`
+   : '-'}
+   </td>
+ </tr>
+
+ `).join('');
+}
+
+window.addUser = function() {
+
+ const id = document.getElementById('newUserId').value.trim();
+ const pass = document.getElementById('newUserPass').value.trim();
+
+ if(!id || !pass) return;
+
+ let users = JSON.parse(localStorage.getItem('crm_users'));
+
+ users.push({
+   id,
+   pass,
+   role: 'user'
+ });
+
+ localStorage.setItem('crm_users', JSON.stringify(users));
+
+ renderUserList();
+}
+
+window.removeUser = function(idx) {
+
+ let users = JSON.parse(localStorage.getItem('crm_users'));
+
+ users.splice(idx, 1);
+
+ localStorage.setItem('crm_users', JSON.stringify(users));
+
+ renderUserList();
+}
+
+window.exportToExcel = async function(type) {
+
+ const snapshot = await getDocs(collection(db, type));
+
+ const data = [];
+
+ snapshot.forEach(docSnap => {
+   data.push(docSnap.data());
+ });
+
+ const ws = XLSX.utils.json_to_sheet(data);
+ const wb = XLSX.utils.book_new();
+
+ XLSX.utils.book_append_sheet(wb, ws, type);
+
+ XLSX.writeFile(wb, `${type}_Report.xlsx`);
+}
+
+window.updateOwnPassword = function() {
+
+ const newPass = document.getElementById('newPassInput').value.trim();
+
+ if(!newPass) return alert('Please enter password');
+
+ let users = JSON.parse(localStorage.getItem('crm_users'));
+
+ const idx = users.findIndex(u => u.id === currentUser.id);
+
+ if(idx !== -1) {
+
+   users[idx].pass = newPass;
+
+   localStorage.setItem('crm_users', JSON.stringify(users));
+
+   alert('Password Updated');
+
+   location.reload();
+ }
+}
+
+</script>
+```
+
+# Firebase এ যা করবেন
+
+## Firestore Database Enable করুন
+
+Firebase Console → Firestore Database → Create Database
+
+* Start in test mode
+* Next
+* Enable
+
+---
+
+## Firestore Rules দিন
+
+Firestore → Rules
+
+এই code paste করুন:
+
+```js
+rules_version = '2';
+
+service cloud.firestore {
+
+match /databases/{database}/documents {
+
+match /{document=**} {
+
+allow read, write: if true;
+
+}
+
+}
+
+}
+```
+
+তারপর Publish করুন।
+
+# Final Result
+
+এখন আপনার CRM:
+
+* Firebase database এ save করবে
+* GitHub Pages এ চলবে
+* Multi device sync হবে
+* Permanent cloud storage থাকবে
+* Excel export কাজ করবে
+* Delete কাজ করবে
+* Admin dashboard কাজ করবে
+
+</body>
+</html>
