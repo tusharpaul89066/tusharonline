@@ -1,8 +1,0 @@
-{
-  "name": "Remix: Nursing Home Management System",
-  "description": "A nursing home management system with patient admission tracking, doctor schedules, staff rosters, pharmacy inventory, invoicing, and bed management.",
-  "requestFramePermissions": [],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
-}
