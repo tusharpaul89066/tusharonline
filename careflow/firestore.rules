@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Development mode: Allow open access since custom UI login is used without Firebase Auth
+    match /{document=**} { 
+      allow read, write: if true; 
+    }
+  }
+}

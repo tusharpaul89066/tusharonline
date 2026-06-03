@@ -1,0 +1,59 @@
+{
+  "entities": {
+    "patient": {
+      "title": "Patient",
+      "description": "Patient record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "uhid": { "type": "string" }
+      }
+    },
+    "bed": {
+      "title": "Bed",
+      "description": "Bed record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "status": { "type": "string" }
+      }
+    },
+    "bill": {
+      "title": "Bill",
+      "description": "Billing record",
+      "type": "object",
+      "properties": {
+        "invoice": { "type": "string" },
+        "total": { "type": "number" }
+      }
+    },
+    "doctor": {
+      "title": "Doctor",
+      "description": "Doctor record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/patients/{patientId}": {
+      "schema": { "$ref": "#/entities/patient" },
+      "description": "Store all patients"
+    },
+    "/beds/{bedId}": {
+      "schema": { "$ref": "#/entities/bed" },
+      "description": "Store all beds"
+    },
+    "/bills/{billId}": {
+      "schema": { "$ref": "#/entities/bill" },
+      "description": "Store all bills"
+    },
+    "/doctors/{doctorId}": {
+      "schema": { "$ref": "#/entities/doctor" },
+      "description": "Store all doctors"
+    }
+  }
+}

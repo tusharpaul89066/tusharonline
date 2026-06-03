@@ -1,0 +1,135 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Noto Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+body {
+  font-family: "Noto Sans", sans-serif;
+  font-weight: 700; /* Noto Sans (Bold) */
+  background-color: #F8F5EE; /* Cream background */
+  background-image: radial-gradient(rgba(26, 51, 56, 0.05) 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+  background-attachment: fixed;
+  color: #1a3338; /* Dark teal base text */
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F8F5EE;
+}
+::-webkit-scrollbar-thumb {
+  background: #c3d0d3;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #1a3338;
+}
+
+/* 3D Cream Cards */
+.retro-card {
+  background-color: #FDFDF8;
+  border: 1px solid #EBE4D5;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border-radius: 1rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.retro-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 12px -2px rgba(26, 51, 56, 0.1);
+}
+
+/* 3D Top Pill Buttons */
+.retro-pill {
+  background-color: #1a3338;
+  color: #E2CD9A; /* soft gold */
+  border: 1px solid #2d555c;
+  border-bottom: 4px solid #0d1a1c;
+  border-radius: 99px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.15s ease-in-out;
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+.retro-pill:active {
+  transform: translateY(3px);
+  border-bottom-width: 1px;
+  margin-top: 3px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+.retro-pill:hover {
+  filter: brightness(1.1);
+}
+
+@media print {
+  .no-print-wrapper { display: none !important; }
+  body { background: white !important; color: black !important; }
+}
+
+@media screen {
+  /* Skin old classes */
+  .bg-white, .bg-slate-50, .bg-emerald-50, .bg-blue-50, .bg-rose-50, .bg-indigo-50, .bg-amber-50, .bg-purple-50, .bg-green-50, .bg-cyan-50 {
+    background-color: #FDFDF8 !important;
+    border-bottom: 2px solid #EBE4D5 !important;
+  }
+  
+  .border-emerald-100, .border-emerald-200, .border-emerald-300, .border-slate-100, .border-slate-200 {
+    border-color: #EBE4D5 !important;
+  }
+
+  .text-emerald-900, .text-emerald-800, .text-slate-900, .text-slate-800, .text-black, .text-gray-900 {
+    color: #1a3338 !important;
+  }
+  
+  .text-emerald-700, .text-emerald-600 {
+    color: #2c555c !important;
+  }
+
+  .bg-emerald-600, .bg-teal-600, .bg-slate-800, .bg-slate-900 {
+    background-color: #1a3338 !important;
+    color: #E2CD9A !important;
+  }
+  
+  input[type="text"], input[type="number"], input[type="date"], select, textarea {
+    background-color: #fcfcf8 !important;
+    border: 1px solid #EBE4D5 !important;
+    border-top: 2px solid #d2c8ae !important;
+    color: #1a3338 !important;
+    box-shadow: inset 0 2px 4px rgba(26,51,56,0.05);
+  }
+  
+  button {
+    border-radius: 8px !important;
+  }
+
+  .btn-action-blue {
+    background-color: #1a365d !important; /* Deep Blue / Navy */
+    color: #e2e8f0 !important;
+    border: 1px solid #1e3a8a !important;
+    border-bottom: 3px solid #0f172a !important;
+    text-transform: uppercase;
+    font-weight: 800;
+    transition: all 0.15s ease-in-out;
+  }
+  
+  .btn-action-blue:active {
+    transform: translateY(2px) !important;
+    border-bottom-width: 1px !important;
+    margin-top: 2px !important;
+  }
+  
+  .btn-action-blue:hover {
+    filter: brightness(1.2);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+}
+
+
+
